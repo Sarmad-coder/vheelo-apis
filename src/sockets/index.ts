@@ -92,18 +92,35 @@ export default async function socket(io: Server) {
             try {
                 // console.log(data);
                 const coordinateRange = getCoordinateRange(data.pickupLat, data.pickupLon);
-                const riders = await RiderService.findByQuery({
+                const riders2=await VehicleInfoService.findByQuery({
+                    categoryId:data.category
+                })
+                // console.log(riders2);
+                let idstoMatch=[]
+                riders2.forEach(element => {
+                    idstoMatch.push(element.dataValues.rider)
+                });
+                
+                
+                let riders = await RiderService.findByQuery({
                     currLat: {
                         [Op.between]: [coordinateRange.minLatitude, coordinateRange.maxLatitude],
                     },
                     currLon: {
                         [Op.between]: [coordinateRange.minLongitude, coordinateRange.maxLongitude],
                     },
-                },);
+                    id: {
+                        [Op.in]: idstoMatch
+                    }
+                });
+
+                // console.log(riders);
+                
+                
                 // const riders = await RiderService.findAll();
                 for (const rider of riders) {
                     // riderNSP.emit("newRideQuick", rider);
-                    notify(rider.dataValues.fcmToken, "New Ride", `New Ride request of price ${data.bidPrice} has been made`)
+                    notify(rider.dataValues.fcmToken, "New Ride Quick", `New Ride request of price ${data.bidPrice} has been made`,"offer")
                 }
                 const fifteenMinutesAgo = new Date(new Date().getTime() - 15 * 60 * 1000);
                 const oldRide = await R_quickService.findByQuery({
@@ -150,7 +167,7 @@ export default async function socket(io: Server) {
                 // const riders = await RiderService.findAll();
                 for (const rider of riders) {
                     // riderNSP.emit("newRideQuick", rider);
-                    notify(rider.dataValues.fcmToken, "New Ride", `New Ride request of price ${data.bidPrice} has been made`)
+                    notify(rider.dataValues.fcmToken, "New Ride", `New Ride request of price ${data.bidPrice} has been made`,"")
                 }
                 // const fifteenMinutesAgo = new Date(new Date().getTime() - 15 * 60 * 1000);
                 // const oldRide = await R_quickService.findByQuery({
@@ -197,7 +214,7 @@ export default async function socket(io: Server) {
                 // const riders = await RiderService.findAll();
                 for (const rider of riders) {
                     // riderNSP.emit("newRideQuick", rider);
-                    notify(rider.dataValues.fcmToken, "New Ride", `New Ride request of price ${data.bidPrice} has been made`)
+                    notify(rider.dataValues.fcmToken, "New Ride City", `New Ride request of price ${data.bidPrice} has been made`,"citytocity")
                 }
                 // const fifteenMinutesAgo = new Date(new Date().getTime() - 15 * 60 * 1000);
                 // const oldRide = await R_quickService.findByQuery({
@@ -243,7 +260,7 @@ export default async function socket(io: Server) {
                 // const riders = await RiderService.findAll();
                 for (const rider of riders) {
                     // riderNSP.emit("newRideQuick", rider);
-                    notify(rider.dataValues.fcmToken, "New Ride", `New Schedule Ride Request has been made.`);
+                    notify(rider.dataValues.fcmToken, "New Ride", `New Schedule Ride Request has been made.`,"");
                 }
                 // const fifteenMinutesAgo = new Date(new Date().getTime() - 15 * 60 * 1000);
                 // const oldRide = await R_quickService.findByQuery({
@@ -300,7 +317,7 @@ export default async function socket(io: Server) {
             //    riderNSP.emit("acceptRideCity", { status: "success" });
             //    userNSP.emit("acceptRideCity", { data:ride });
                console.log("acceptRideCity", "success");
-               notify(rider.fcmToken, "RideCity", "User has accepted your ride")
+               notify(rider.fcmToken, "RideCity", "User has accepted your ride","")
            } catch (error) {
                cb({ status: "error", message: error.message });
                console.log(error, "fffffff");
@@ -331,7 +348,7 @@ export default async function socket(io: Server) {
         //    riderNSP.emit("acceptRideCity", { status: "success" });
         //    userNSP.emit("acceptRideCity", { data:ride });
            console.log("acceptRideCity", "success");
-           notify(rider.fcmToken, "RideDaily", "User has accepted your ride")
+           notify(rider.fcmToken, "RideDaily", "User has accepted your ride","")
        } catch (error) {
            cb({ status: "error", message: error.message });
            console.log(error, "fffffff");
@@ -353,7 +370,7 @@ export default async function socket(io: Server) {
                 cb({ status: "success", data: finalData });
                 riderNSP.emit("acceptRideQuick", { data: finalData, status: "success" });
                 console.log("acceptRideQuick", "success");
-                notify(finalData.riderData.fcmToken, "Quick Ride Accepted", `Quick Ride has been accepted of price ${bidData.amount}`)
+                notify(finalData.riderData.fcmToken, "Quick Ride Accepted", `Quick Ride has been accepted of price ${bidData.amount}`,"")
 
             } catch (error) {
                 cb({ status: "error", message: error.message });
@@ -418,7 +435,7 @@ export default async function socket(io: Server) {
 
                     final.push({ bid: bid.dataValues, riderData, categoryData,vehicleInfo});
                     // console.log(riderData, "jjjjjj");
-                    notify(userData.fcmToken, "New Bid", `New Bid request of price ${bid.amount} has been made`)
+                    notify(userData.fcmToken, "New Bid", `New Bid request of price ${bid.amount} has been made`,"")
                 }
                 
                 console.log(final, "final, dataValues");
@@ -498,7 +515,7 @@ export default async function socket(io: Server) {
                 //     userNSP.emit("expiredBidQuick", bid.id);
                 // }, 10000);
                 userNSP.emit("allBidsDaily", { status: "success", data: final, userData});
-                notify(userData.fcmToken, "New Bid", `New Bid request of price ${bid.amount} has been made`)
+                notify(userData.fcmToken, "New Bid", `New Bid request of price ${bid.amount} has been made`,"")
                 console.log({ data: final, userData }, "8888888888");
 
                 cb({ status: "success", bidId: bid })
@@ -518,7 +535,7 @@ export default async function socket(io: Server) {
                 let rideData = (await R_quickService.updateById(bidData?.ride, { status: "arrived", rider: bidData?.rider }));
                 const dataUpdated = (await R_quickService.findById(bidData?.ride))?.dataValues;
                 const data = (await UserService.findById(dataUpdated.user))?.dataValues;
-                notify(data.fcmToken, "Info", "Your rider has arrived")
+                notify(data.fcmToken, "Info", "Your rider has arrived","")
                 userNSP.emit("arrivedRideQuick", { status: "success", data: rideData,user:data });
                 cb({ status: "success", message: "arrived successfully", data: rideData })
             } catch (error) {
@@ -535,7 +552,7 @@ export default async function socket(io: Server) {
                 console.log(dataUpdated, "oooooooooooooo");
 
                 const data = (await UserService.findById(dataUpdated.user))?.dataValues;
-                notify(data.fcmToken, "Info", "Your rider has arrived")
+                notify(data.fcmToken, "Info", "Your rider has arrived","")
                 userNSP.emit("arrivedRideHourly", { status: "success", data: rideData });
                 cb({ status: "success", message: "arrived successfully", data: rideData })
             } catch (error) {
@@ -550,7 +567,7 @@ export default async function socket(io: Server) {
                 let rideData = (await R_quickService.updateById(bidData?.ride, { status: "started", rider: bidData?.rider }));
                 const dataUpdated = (await R_quickService.findById(bidData?.ride))?.dataValues;
                 const data = (await UserService.findById(dataUpdated.user))?.dataValues;
-                notify(data.fcmToken, "Info", "Your rider has started")
+                notify(data.fcmToken, "Info", "Your rider has started","")
                 userNSP.emit("startedRideQuick", { status: "success", data: rideData,user:data });
                 cb({ status: "success", message: "started successfully", data: rideData })
             } catch (error) {
@@ -563,7 +580,7 @@ export default async function socket(io: Server) {
                 let rideData = (await R_hourlyService.updateById(rideId, { status: "started", rider: riderId }));
                 const dataUpdated = (await R_hourlyService.findById(rideData))?.dataValues;
                 const data = (await UserService.findById(dataUpdated.user))?.dataValues;
-                notify(data.fcmToken, "Info", "Your rider has started")
+                notify(data.fcmToken, "Info", "Your rider has started","")
                 userNSP.emit("startedRideHourly", { status: "success", data: rideData });
                 cb({ status: "success", message: "started successfully", data: rideData })
             } catch (error) {
@@ -586,7 +603,7 @@ export default async function socket(io: Server) {
                 const categoryData = (await RC_quickService.findById(rideData?.category))?.dataValues;
                 const dataUpdated = (await R_quickService.findById(bidData?.ride))?.dataValues;
                 const data = (await UserService.findById(dataUpdated.user))?.dataValues;
-                notify(data.fcmToken, "Info", "Your rider has ended the ride");
+                notify(data.fcmToken, "Info", "Your rider has ended the ride","");
                 await RiderService.updateByQuery({ id: bidData?.rider }, { status: "available" })
 
                 userNSP.emit("endedRideQuick", { status: "success", data: rideData,user:data });
@@ -609,7 +626,7 @@ export default async function socket(io: Server) {
                 const price = calculatePrice({ distance: dataUpdated.distance, rateKm: categoryData?.priceKm, hours: timeTaken, rateHour: categoryData?.priceHour });
 
 
-                notify(userData.fcmToken, "Info", "Your rider has ended the ride");
+                notify(userData.fcmToken, "Info", "Your rider has ended the ride","");
 
                 userNSP.emit("endedRideHourly", { status: "success", data: dataUpdated });
                 cb({ status: "success", message: "ended successfully", data: dataUpdated, price, categoryData, timeTaken, distance: dataUpdated.distance });
@@ -645,7 +662,7 @@ export default async function socket(io: Server) {
                 const userData:any = await UserService.findById(data.user)
                 // console.log(result);
                 cb("City Ride has completed successfully");
-                notify(userData.fcmToken, "Info", "Your rider has ended the ride");
+                notify(userData.fcmToken, "Info", "Your rider has ended the ride","");
                 // console.log("cancelRideQuick", "success");
             } catch (error) {
                 cb({ status: "error", message: error.message });
@@ -664,7 +681,7 @@ export default async function socket(io: Server) {
                 const userData:any = await UserService.findById(data.user)
                 // console.log(result);
                 cb("Daily Ride has completed successfully");
-                notify(userData.fcmToken, "Info", "Your rider has ended the ride");
+                notify(userData.fcmToken, "Info", "Your rider has ended the ride","");
                 // console.log("cancelRideQuick", "success");
             } catch (error) {
                 cb({ status: "error", message: error.message });

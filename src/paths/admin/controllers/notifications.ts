@@ -9,7 +9,7 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
     try {
 let riders:any=await RiderService.findAll()
 riders.forEach(element => {
-    notify(element.fcmToken, req.body.title, req.body.body)
+    notify(element.fcmToken, req.body.title, req.body.body,"")
 });
 return res.json({status:"success"})
     //     let FAQ=await FAQModel.create(req.body)

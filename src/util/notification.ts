@@ -1,14 +1,15 @@
 import { sendNotification } from "./fcm";
 
-export const notify = async (registrationToken, title, body) => {
+export const notify = async (registrationToken, title, body,navigate) => {
     try {
         const payload = {
             notification: {
                 title,
                 body
             },
+            
             data: {
-                // optional data payload
+                screen:navigate
             }
         };
         await sendNotification(registrationToken, payload);

@@ -1,5 +1,5 @@
 import admin, {ServiceAccount} from 'firebase-admin';
-import serviceAccount from '../config/vheelocaptainflutter-firebase-adminsdk-unut4-e6878ed8ff.json';
+import serviceAccount from '../config/vheelo-543c6-firebase-adminsdk-9mwnm-a0d3f4f364.json';
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount as ServiceAccount),
